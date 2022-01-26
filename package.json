@@ -19,7 +19,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:migrate": "dotenv -c development yarn prisma migrate dev",
+    "prisma:cmd": "dotenv -c development yarn prisma",
+    "prisma:migrate": "yarn prisma:cmd migrate dev",
+    "prisma:generate": "yarn prisma:cmd generate",
     "app:generate-key": "node ./bin/app-gen-key.js",
     "prepare": "husky install"
   },
