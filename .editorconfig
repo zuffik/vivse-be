@@ -1,3 +1,3 @@
-[bin/*.js]
+[*.*]
   tab_width = 2
   indent_size = tab
