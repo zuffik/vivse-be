@@ -11,16 +11,39 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_password
       POSTGRES_DB: local_dev
-  app:
-    build: .
+  app-prod:
+    build:
+      context: .
+      dockerfile: ./production.dockerfile
     depends_on:
       - db
     ports:
       - "3005:3000"
+    volumes:
+      - .:/usr/src/app/
     environment:
+      NODE_ENV: production
       DATABASE_HOST: db
       DATABASE_PORT: 5433
       DATABASE_USER: postgres
       DATABASE_PASS: postgres_password
-      DATABASE_NAME: local_dev
+      DATABASE_NAME: local_prod
+
+  app-dev:
+    build:
+      context: .
+      dockerfile: ./development.dockerfile
+    depends_on:
+      - db
+    ports:
+      - "3005:3000"
+    volumes:
+      - .:/usr/src/app/
+    environment:
+      NODE_ENV: development
+      DATABASE_HOST: db
+      DATABASE_PORT: 5433
+      DATABASE_USER: postgres
+      DATABASE_PASS: postgres_password
+      DATABASE_NAME: local_prod
 
