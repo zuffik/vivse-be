@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { CredentialsInput } from './types/credentials.input';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from '../user/user.entity';
+import { Token } from './types/token.type';
 
 @Resolver()
 export class AuthResolver {
@@ -14,7 +15,7 @@ export class AuthResolver {
   ) {}
 
   @UseGuards(LocalAuthGuard)
-  @Mutation()
+  @Mutation(() => Token)
   public async login(
     @Args('credentials') credentials: CredentialsInput,
     @CurrentUser() user: User,

@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -9,7 +9,7 @@ async function main() {
   const envVarName = 'APP_KEY';
 
   const filePath = path.join(process.cwd(), fileName);
-  const key = bcrypt.hashSync(Date.now().toString(), 10);
+  const key = crypto.randomBytes(32).toString('hex');
   if (fs.existsSync(filePath)) {
     const env = dotenv.config({ path: filePath });
     if (env.error) {

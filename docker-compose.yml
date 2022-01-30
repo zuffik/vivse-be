@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:12.5
     ports:
-      - 5433:5432
+      - "5432:5432"
     volumes:
       - ./.docker-data/postgres-data/data:/var/lib/postgresql/data
     environment:
@@ -25,7 +25,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_HOST: db
-      DATABASE_PORT: 5433
+      DATABASE_PORT: 5432
       DATABASE_USER: postgres
       DATABASE_PASS: postgres_password
       DATABASE_NAME: local_prod
@@ -43,8 +43,8 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_HOST: db
-      DATABASE_PORT: 5433
+      DATABASE_PORT: 5432
       DATABASE_USER: postgres
       DATABASE_PASS: postgres_password
-      DATABASE_NAME: local_prod
+      DATABASE_NAME: local_dev
 

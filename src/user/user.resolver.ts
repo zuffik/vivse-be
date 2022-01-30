@@ -1,7 +1,9 @@
-import { Mutation, Resolver } from '@nestjs/graphql';
+import { Mutation, Query, Resolver } from '@nestjs/graphql';
 
 @Resolver()
 export class UserResolver {
-  @Mutation()
-  public async login() {}
+  @Query(() => String)
+  public helloWorld() {
+    return 'hello';
+  }
 }

@@ -10,7 +10,6 @@ import { configSchema } from './config/config.schema';
   imports: [
     ConfigModule.forRoot({
       envFilePath: [
-        '.env.common',
         '.env',
         `.env.${process.env.NODE_ENV}`,
         '.env.local',
@@ -20,6 +19,7 @@ import { configSchema } from './config/config.schema';
         .reverse(),
       isGlobal: true,
       validationSchema: configSchema,
+      expandVariables: true,
     }),
     DbModule,
     GraphQLModule.forRoot({ autoSchemaFile: './schema.gql' }),

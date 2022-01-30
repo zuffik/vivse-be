@@ -2,6 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Token {
+  token: String!
+}
+
 type Query {
   helloWorld: String!
+}
+
+type Mutation {
+  login(credentials: CredentialsInput!): Token!
+}
+
+input CredentialsInput {
+  email: String!
+  password: String!
 }
