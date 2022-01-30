@@ -9,4 +9,8 @@ export class UserService {
   public async findOneByEmail(email: string): Promise<User> {
     return this.db.user.findUnique({ where: { email } });
   }
+
+  public async findOneById(id: string): Promise<User> {
+    return this.db.user.findUnique({ where: { id } });
+  }
 }

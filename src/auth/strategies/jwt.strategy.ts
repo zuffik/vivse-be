@@ -3,12 +3,16 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PayloadToSign } from '../types/payload-to-sign.type';
 import { ConfigService } from '@nestjs/config';
+import { User } from '../../../prisma/generated/client';
+import { UserService } from '../../user/user.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(ConfigService)
     private readonly cfg: ConfigService,
+    @Inject(UserService)
+    private readonly users: UserService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -17,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: PayloadToSign) {
-    return payload;
+  async validate(payload: PayloadToSign): Promise<User> {
+    return this.users.findOneById(payload.id);
   }
 }

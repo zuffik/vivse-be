@@ -2,9 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { User } from '../../prisma/generated/client';
 import { JwtService } from '@nestjs/jwt';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { PayloadToSign } from './types/payload-to-sign.type';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +14,7 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) {}
 
-  async generatePasswordHash(password) {
+  async generatePasswordHash(password: string) {
     return new Promise((resolve, reject) => {
       const salt = crypto.randomBytes(8).toString('hex');
 
@@ -26,19 +25,22 @@ export class AuthService {
     });
   }
 
-  async verifyPassword(password, hash) {
+  async verifyPassword(password: string, hash: string) {
     return new Promise((resolve, reject) => {
       const [salt, key] = hash.split(':');
       crypto.scrypt(password, salt, 64, (err, derivedKey) => {
         if (err) reject(err);
-        resolve(key == derivedKey.toString('hex'));
+        resolve(key === derivedKey.toString('hex'));
       });
     });
   }
 
   public async authenticate(credentials: Credentials): Promise<User | null> {
     const user = await this.users.findOneByEmail(credentials.email);
-    if (!(await this.verifyPassword(user.password, credentials.password)))
+    if (
+      !user ||
+      !(await this.verifyPassword(credentials.password, user.password))
+    )
       return null;
     return user;
   }

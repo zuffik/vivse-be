@@ -11,10 +11,5 @@ type Query {
 }
 
 type Mutation {
-  login(credentials: CredentialsInput!): Token!
-}
-
-input CredentialsInput {
-  email: String!
-  password: String!
+  login(password: String!, email: String!): Token!
 }
