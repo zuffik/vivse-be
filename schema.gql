@@ -2,14 +2,27 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type User {
+  id: String!
+  email: String!
+  name: String
+}
+
 type Token {
   token: String!
 }
 
 type Query {
-  helloWorld: String!
+  me: User!
 }
 
 type Mutation {
+  createUser(user: UserInput!): User!
   login(password: String!, email: String!): Token!
+}
+
+input UserInput {
+  email: String!
+  password: String!
+  name: String
 }
