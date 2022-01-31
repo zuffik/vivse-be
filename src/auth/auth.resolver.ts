@@ -3,7 +3,7 @@ import { Inject, UseGuards } from '@nestjs/common';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { User } from '../user/user.entity';
+import { User } from '../user/types/user.entity';
 import { Token } from './types/token.type';
 
 @Resolver()

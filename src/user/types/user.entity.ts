@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { User as IUser } from '../../prisma/generated/client';
+import { User as IUser } from '../../../prisma/generated/client';
 
 @ObjectType()
 export class User implements Omit<IUser, 'password'> {
