@@ -36,7 +36,9 @@
     "@nestjs/platform-express": "^8.0.0",
     "@prisma/client": "3.8.1",
     "apollo-server-express": "3.6.2",
+    "aws-sdk": "2.1070.0",
     "graphql": "^15",
+    "mime": "3.0.0",
     "passport": "0.5.2",
     "passport-jwt": "4.0.0",
     "passport-local": "1.0.0",
@@ -52,6 +54,8 @@
     "@types/express": "^4.17.13",
     "@types/hapi__joi": "17.1.8",
     "@types/jest": "27.0.2",
+    "@types/mime": "2.0.3",
+    "@types/multer": "1.4.7",
     "@types/node": "^16.0.0",
     "@types/passport-jwt": "3.0.6",
     "@types/passport-local": "1.0.34",
@@ -100,7 +104,7 @@
     "src/**/*.{ts,js}": [
       "./node_modules/.bin/prettier --write"
     ],
-    "prisma/**/*.{sql,prisma}": [
+    "prisma/**/*.{sql,prisma,ts,js}": [
       "./node_modules/.bin/prettier --write"
     ]
   }

@@ -5,6 +5,10 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { configSchema } from './config/config.schema';
+import { PictureModule } from './picture/picture.module';
+import { CloudModule } from './cloud/cloud.module';
+import { UtilsModule } from './utils/utils.module';
+import { FileStorageModule } from './file-storage/file-storage.module';
 
 @Module({
   imports: [
@@ -25,6 +29,10 @@ import { configSchema } from './config/config.schema';
     GraphQLModule.forRoot({ autoSchemaFile: './schema.gql' }),
     UserModule,
     AuthModule,
+    PictureModule,
+    CloudModule,
+    UtilsModule,
+    FileStorageModule,
   ],
   controllers: [],
   providers: [],
