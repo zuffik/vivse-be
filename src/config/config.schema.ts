@@ -12,4 +12,9 @@ export const configSchema = Joi.object({
   AWS_S3_BUCKET_NAME: Joi.string().required(),
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+
+  APP_UPLOAD_DIR: Joi.string().default('./tmp'),
+  APP_WATERMARK_PATH: Joi.string().default('./static/img/watermark.png'),
+  APP_THUMB_SMALL_SIZE: Joi.number(),
+  APP_THUMB_LARGE_SIZE: Joi.number(),
 });

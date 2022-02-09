@@ -33,7 +33,7 @@ export type Album = {
   id: string;
   createdAt: Date;
   label: string;
-  mainPhotoId: string;
+  mainPhotoId: string | null;
 };
 
 /**
@@ -56,7 +56,7 @@ export type Photo = {
   id: string;
   createdAt: Date;
   originalFileId: string;
-  editedFileId: string;
+  editedFileId: string | null;
   albumId: string;
   label: string;
 };
@@ -331,8 +331,8 @@ export namespace Prisma {
   export import Decimal = runtime.Decimal;
 
   /**
-   * Prisma Client JS version: 3.8.1
-   * Query Engine version: 34df67547cf5598f5a6cd3eb45f14ee70c3fb86f
+   * Prisma Client JS version: 3.9.1
+   * Query Engine version: bcc2ff906db47790ee902e7bbc76d7ffb1893009
    */
   export type PrismaVersion = {
     client: string;
@@ -914,7 +914,8 @@ export namespace Prisma {
     | 'executeRaw'
     | 'queryRaw'
     | 'aggregate'
-    | 'count';
+    | 'count'
+    | 'runCommandRaw';
 
   /**
    * These options are being passed in to the middleware as "params"
@@ -992,15 +993,61 @@ export namespace Prisma {
   };
 
   /**
+   * Count Type ImageFileCountOutputType
+   */
+
+  export type ImageFileCountOutputType = {
+    editedFor: number;
+    originalFor: number;
+  };
+
+  export type ImageFileCountOutputTypeSelect = {
+    editedFor?: boolean;
+    originalFor?: boolean;
+  };
+
+  export type ImageFileCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | ImageFileCountOutputTypeArgs,
+    U = keyof S,
+  > = S extends true
+    ? ImageFileCountOutputType
+    : S extends undefined
+    ? never
+    : S extends ImageFileCountOutputTypeArgs
+    ? 'include' extends U
+      ? ImageFileCountOutputType
+      : 'select' extends U
+      ? {
+          [P in TrueKeys<S['select']>]: P extends keyof ImageFileCountOutputType
+            ? ImageFileCountOutputType[P]
+            : never;
+        }
+      : ImageFileCountOutputType
+    : ImageFileCountOutputType;
+
+  // Custom InputTypes
+
+  /**
+   * ImageFileCountOutputType without action
+   */
+  export type ImageFileCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the ImageFileCountOutputType
+     *
+     **/
+    select?: ImageFileCountOutputTypeSelect | null;
+  };
+
+  /**
    * Count Type PhotoCountOutputType
    */
 
   export type PhotoCountOutputType = {
-    Album: number;
+    mainFor: number;
   };
 
   export type PhotoCountOutputTypeSelect = {
-    Album?: boolean;
+    mainFor?: boolean;
   };
 
   export type PhotoCountOutputTypeGetPayload<
@@ -1805,6 +1852,10 @@ export namespace Prisma {
    * User createMany
    */
   export type UserCreateManyArgs = {
+    /**
+     * The data used to create many Users.
+     *
+     **/
     data: Enumerable<UserCreateManyInput>;
     skipDuplicates?: boolean;
   };
@@ -1834,7 +1885,15 @@ export namespace Prisma {
    * User updateMany
    */
   export type UserUpdateManyArgs = {
+    /**
+     * The data used to update Users.
+     *
+     **/
     data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>;
+    /**
+     * Filter which Users to update
+     *
+     **/
     where?: UserWhereInput;
   };
 
@@ -1884,6 +1943,10 @@ export namespace Prisma {
    * User deleteMany
    */
   export type UserDeleteManyArgs = {
+    /**
+     * Filter which Users to delete
+     *
+     **/
     where?: UserWhereInput;
   };
 
@@ -2030,7 +2093,7 @@ export namespace Prisma {
     id: string;
     createdAt: Date;
     label: string;
-    mainPhotoId: string;
+    mainPhotoId: string | null;
     _count: AlbumCountAggregateOutputType | null;
     _min: AlbumMinAggregateOutputType | null;
     _max: AlbumMaxAggregateOutputType | null;
@@ -2052,15 +2115,15 @@ export namespace Prisma {
     id?: boolean;
     createdAt?: boolean;
     label?: boolean;
-    photos?: boolean | PhotoFindManyArgs;
     mainPhotoId?: boolean;
     main?: boolean | PhotoArgs;
+    photos?: boolean | PhotoFindManyArgs;
     _count?: boolean | AlbumCountOutputTypeArgs;
   };
 
   export type AlbumInclude = {
-    photos?: boolean | PhotoFindManyArgs;
     main?: boolean | PhotoArgs;
+    photos?: boolean | PhotoFindManyArgs;
     _count?: boolean | AlbumCountOutputTypeArgs;
   };
 
@@ -2074,10 +2137,10 @@ export namespace Prisma {
     : S extends AlbumArgs | AlbumFindManyArgs
     ? 'include' extends U
       ? Album & {
-          [P in TrueKeys<S['include']>]: P extends 'photos'
+          [P in TrueKeys<S['include']>]: P extends 'main'
+            ? PhotoGetPayload<S['include'][P]> | null
+            : P extends 'photos'
             ? Array<PhotoGetPayload<S['include'][P]>>
-            : P extends 'main'
-            ? PhotoGetPayload<S['include'][P]>
             : P extends '_count'
             ? AlbumCountOutputTypeGetPayload<S['include'][P]>
             : never;
@@ -2086,10 +2149,10 @@ export namespace Prisma {
       ? {
           [P in TrueKeys<S['select']>]: P extends keyof Album
             ? Album[P]
+            : P extends 'main'
+            ? PhotoGetPayload<S['select'][P]> | null
             : P extends 'photos'
             ? Array<PhotoGetPayload<S['select'][P]>>
-            : P extends 'main'
-            ? PhotoGetPayload<S['select'][P]>
             : P extends '_count'
             ? AlbumCountOutputTypeGetPayload<S['select'][P]>
             : never;
@@ -2510,20 +2573,20 @@ export namespace Prisma {
     );
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    photos<T extends PhotoFindManyArgs = {}>(
-      args?: Subset<T, PhotoFindManyArgs>,
-    ): CheckSelect<
-      T,
-      PrismaPromise<Array<Photo>>,
-      PrismaPromise<Array<PhotoGetPayload<T>>>
-    >;
-
     main<T extends PhotoArgs = {}>(
       args?: Subset<T, PhotoArgs>,
     ): CheckSelect<
       T,
       Prisma__PhotoClient<Photo | null>,
       Prisma__PhotoClient<PhotoGetPayload<T> | null>
+    >;
+
+    photos<T extends PhotoFindManyArgs = {}>(
+      args?: Subset<T, PhotoFindManyArgs>,
+    ): CheckSelect<
+      T,
+      PrismaPromise<Array<Photo>>,
+      PrismaPromise<Array<PhotoGetPayload<T>>>
     >;
 
     private get _document();
@@ -2727,6 +2790,10 @@ export namespace Prisma {
    * Album createMany
    */
   export type AlbumCreateManyArgs = {
+    /**
+     * The data used to create many Albums.
+     *
+     **/
     data: Enumerable<AlbumCreateManyInput>;
     skipDuplicates?: boolean;
   };
@@ -2761,7 +2828,15 @@ export namespace Prisma {
    * Album updateMany
    */
   export type AlbumUpdateManyArgs = {
+    /**
+     * The data used to update Albums.
+     *
+     **/
     data: XOR<AlbumUpdateManyMutationInput, AlbumUncheckedUpdateManyInput>;
+    /**
+     * Filter which Albums to update
+     *
+     **/
     where?: AlbumWhereInput;
   };
 
@@ -2821,6 +2896,10 @@ export namespace Prisma {
    * Album deleteMany
    */
   export type AlbumDeleteManyArgs = {
+    /**
+     * Filter which Albums to delete
+     *
+     **/
     where?: AlbumWhereInput;
   };
 
@@ -3003,13 +3082,15 @@ export namespace Prisma {
     original?: boolean;
     small?: boolean;
     large?: boolean;
-    originalFor?: boolean | PhotoArgs;
-    editedFor?: boolean | PhotoArgs;
+    editedFor?: boolean | PhotoFindManyArgs;
+    originalFor?: boolean | PhotoFindManyArgs;
+    _count?: boolean | ImageFileCountOutputTypeArgs;
   };
 
   export type ImageFileInclude = {
-    originalFor?: boolean | PhotoArgs;
-    editedFor?: boolean | PhotoArgs;
+    editedFor?: boolean | PhotoFindManyArgs;
+    originalFor?: boolean | PhotoFindManyArgs;
+    _count?: boolean | ImageFileCountOutputTypeArgs;
   };
 
   export type ImageFileGetPayload<
@@ -3022,20 +3103,24 @@ export namespace Prisma {
     : S extends ImageFileArgs | ImageFileFindManyArgs
     ? 'include' extends U
       ? ImageFile & {
-          [P in TrueKeys<S['include']>]: P extends 'originalFor'
-            ? PhotoGetPayload<S['include'][P]> | null
-            : P extends 'editedFor'
-            ? PhotoGetPayload<S['include'][P]> | null
+          [P in TrueKeys<S['include']>]: P extends 'editedFor'
+            ? Array<PhotoGetPayload<S['include'][P]>>
+            : P extends 'originalFor'
+            ? Array<PhotoGetPayload<S['include'][P]>>
+            : P extends '_count'
+            ? ImageFileCountOutputTypeGetPayload<S['include'][P]>
             : never;
         }
       : 'select' extends U
       ? {
           [P in TrueKeys<S['select']>]: P extends keyof ImageFile
             ? ImageFile[P]
-            : P extends 'originalFor'
-            ? PhotoGetPayload<S['select'][P]> | null
             : P extends 'editedFor'
-            ? PhotoGetPayload<S['select'][P]> | null
+            ? Array<PhotoGetPayload<S['select'][P]>>
+            : P extends 'originalFor'
+            ? Array<PhotoGetPayload<S['select'][P]>>
+            : P extends '_count'
+            ? ImageFileCountOutputTypeGetPayload<S['select'][P]>
             : never;
         }
       : ImageFile
@@ -3455,20 +3540,20 @@ export namespace Prisma {
     );
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    originalFor<T extends PhotoArgs = {}>(
-      args?: Subset<T, PhotoArgs>,
+    editedFor<T extends PhotoFindManyArgs = {}>(
+      args?: Subset<T, PhotoFindManyArgs>,
     ): CheckSelect<
       T,
-      Prisma__PhotoClient<Photo | null>,
-      Prisma__PhotoClient<PhotoGetPayload<T> | null>
+      PrismaPromise<Array<Photo>>,
+      PrismaPromise<Array<PhotoGetPayload<T>>>
     >;
 
-    editedFor<T extends PhotoArgs = {}>(
-      args?: Subset<T, PhotoArgs>,
+    originalFor<T extends PhotoFindManyArgs = {}>(
+      args?: Subset<T, PhotoFindManyArgs>,
     ): CheckSelect<
       T,
-      Prisma__PhotoClient<Photo | null>,
-      Prisma__PhotoClient<PhotoGetPayload<T> | null>
+      PrismaPromise<Array<Photo>>,
+      PrismaPromise<Array<PhotoGetPayload<T>>>
     >;
 
     private get _document();
@@ -3672,6 +3757,10 @@ export namespace Prisma {
    * ImageFile createMany
    */
   export type ImageFileCreateManyArgs = {
+    /**
+     * The data used to create many ImageFiles.
+     *
+     **/
     data: Enumerable<ImageFileCreateManyInput>;
     skipDuplicates?: boolean;
   };
@@ -3706,10 +3795,18 @@ export namespace Prisma {
    * ImageFile updateMany
    */
   export type ImageFileUpdateManyArgs = {
+    /**
+     * The data used to update ImageFiles.
+     *
+     **/
     data: XOR<
       ImageFileUpdateManyMutationInput,
       ImageFileUncheckedUpdateManyInput
     >;
+    /**
+     * Filter which ImageFiles to update
+     *
+     **/
     where?: ImageFileWhereInput;
   };
 
@@ -3769,6 +3866,10 @@ export namespace Prisma {
    * ImageFile deleteMany
    */
   export type ImageFileDeleteManyArgs = {
+    /**
+     * Filter which ImageFiles to delete
+     *
+     **/
     where?: ImageFileWhereInput;
   };
 
@@ -3932,7 +4033,7 @@ export namespace Prisma {
     id: string;
     createdAt: Date;
     originalFileId: string;
-    editedFileId: string;
+    editedFileId: string | null;
     albumId: string;
     label: string;
     _count: PhotoCountAggregateOutputType | null;
@@ -3956,21 +4057,21 @@ export namespace Prisma {
     id?: boolean;
     createdAt?: boolean;
     originalFileId?: boolean;
-    originalFile?: boolean | ImageFileArgs;
     editedFileId?: boolean;
-    editedFile?: boolean | ImageFileArgs;
     albumId?: boolean;
-    album?: boolean | AlbumArgs;
     label?: boolean;
-    Album?: boolean | AlbumFindManyArgs;
+    album?: boolean | AlbumArgs;
+    editedFile?: boolean | ImageFileArgs;
+    originalFile?: boolean | ImageFileArgs;
+    mainFor?: boolean | AlbumFindManyArgs;
     _count?: boolean | PhotoCountOutputTypeArgs;
   };
 
   export type PhotoInclude = {
-    originalFile?: boolean | ImageFileArgs;
-    editedFile?: boolean | ImageFileArgs;
     album?: boolean | AlbumArgs;
-    Album?: boolean | AlbumFindManyArgs;
+    editedFile?: boolean | ImageFileArgs;
+    originalFile?: boolean | ImageFileArgs;
+    mainFor?: boolean | AlbumFindManyArgs;
     _count?: boolean | PhotoCountOutputTypeArgs;
   };
 
@@ -3984,13 +4085,13 @@ export namespace Prisma {
     : S extends PhotoArgs | PhotoFindManyArgs
     ? 'include' extends U
       ? Photo & {
-          [P in TrueKeys<S['include']>]: P extends 'originalFile'
-            ? ImageFileGetPayload<S['include'][P]>
-            : P extends 'editedFile'
-            ? ImageFileGetPayload<S['include'][P]>
-            : P extends 'album'
+          [P in TrueKeys<S['include']>]: P extends 'album'
             ? AlbumGetPayload<S['include'][P]>
-            : P extends 'Album'
+            : P extends 'editedFile'
+            ? ImageFileGetPayload<S['include'][P]> | null
+            : P extends 'originalFile'
+            ? ImageFileGetPayload<S['include'][P]>
+            : P extends 'mainFor'
             ? Array<AlbumGetPayload<S['include'][P]>>
             : P extends '_count'
             ? PhotoCountOutputTypeGetPayload<S['include'][P]>
@@ -4000,13 +4101,13 @@ export namespace Prisma {
       ? {
           [P in TrueKeys<S['select']>]: P extends keyof Photo
             ? Photo[P]
-            : P extends 'originalFile'
-            ? ImageFileGetPayload<S['select'][P]>
-            : P extends 'editedFile'
-            ? ImageFileGetPayload<S['select'][P]>
             : P extends 'album'
             ? AlbumGetPayload<S['select'][P]>
-            : P extends 'Album'
+            : P extends 'editedFile'
+            ? ImageFileGetPayload<S['select'][P]> | null
+            : P extends 'originalFile'
+            ? ImageFileGetPayload<S['select'][P]>
+            : P extends 'mainFor'
             ? Array<AlbumGetPayload<S['select'][P]>>
             : P extends '_count'
             ? PhotoCountOutputTypeGetPayload<S['select'][P]>
@@ -4428,12 +4529,12 @@ export namespace Prisma {
     );
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    originalFile<T extends ImageFileArgs = {}>(
-      args?: Subset<T, ImageFileArgs>,
+    album<T extends AlbumArgs = {}>(
+      args?: Subset<T, AlbumArgs>,
     ): CheckSelect<
       T,
-      Prisma__ImageFileClient<ImageFile | null>,
-      Prisma__ImageFileClient<ImageFileGetPayload<T> | null>
+      Prisma__AlbumClient<Album | null>,
+      Prisma__AlbumClient<AlbumGetPayload<T> | null>
     >;
 
     editedFile<T extends ImageFileArgs = {}>(
@@ -4444,15 +4545,15 @@ export namespace Prisma {
       Prisma__ImageFileClient<ImageFileGetPayload<T> | null>
     >;
 
-    album<T extends AlbumArgs = {}>(
-      args?: Subset<T, AlbumArgs>,
+    originalFile<T extends ImageFileArgs = {}>(
+      args?: Subset<T, ImageFileArgs>,
     ): CheckSelect<
       T,
-      Prisma__AlbumClient<Album | null>,
-      Prisma__AlbumClient<AlbumGetPayload<T> | null>
+      Prisma__ImageFileClient<ImageFile | null>,
+      Prisma__ImageFileClient<ImageFileGetPayload<T> | null>
     >;
 
-    Album<T extends AlbumFindManyArgs = {}>(
+    mainFor<T extends AlbumFindManyArgs = {}>(
       args?: Subset<T, AlbumFindManyArgs>,
     ): CheckSelect<
       T,
@@ -4661,6 +4762,10 @@ export namespace Prisma {
    * Photo createMany
    */
   export type PhotoCreateManyArgs = {
+    /**
+     * The data used to create many Photos.
+     *
+     **/
     data: Enumerable<PhotoCreateManyInput>;
     skipDuplicates?: boolean;
   };
@@ -4695,7 +4800,15 @@ export namespace Prisma {
    * Photo updateMany
    */
   export type PhotoUpdateManyArgs = {
+    /**
+     * The data used to update Photos.
+     *
+     **/
     data: XOR<PhotoUpdateManyMutationInput, PhotoUncheckedUpdateManyInput>;
+    /**
+     * Filter which Photos to update
+     *
+     **/
     where?: PhotoWhereInput;
   };
 
@@ -4755,6 +4868,10 @@ export namespace Prisma {
    * Photo deleteMany
    */
   export type PhotoDeleteManyArgs = {
+    /**
+     * Filter which Photos to delete
+     *
+     **/
     where?: PhotoWhereInput;
   };
 
@@ -5540,6 +5657,10 @@ export namespace Prisma {
    * Url createMany
    */
   export type UrlCreateManyArgs = {
+    /**
+     * The data used to create many Urls.
+     *
+     **/
     data: Enumerable<UrlCreateManyInput>;
     skipDuplicates?: boolean;
   };
@@ -5569,7 +5690,15 @@ export namespace Prisma {
    * Url updateMany
    */
   export type UrlUpdateManyArgs = {
+    /**
+     * The data used to update Urls.
+     *
+     **/
     data: XOR<UrlUpdateManyMutationInput, UrlUncheckedUpdateManyInput>;
+    /**
+     * Filter which Urls to update
+     *
+     **/
     where?: UrlWhereInput;
   };
 
@@ -5619,6 +5748,10 @@ export namespace Prisma {
    * Url deleteMany
    */
   export type UrlDeleteManyArgs = {
+    /**
+     * Filter which Urls to delete
+     *
+     **/
     where?: UrlWhereInput;
   };
 
@@ -5760,18 +5893,18 @@ export namespace Prisma {
     id?: StringFilter | string;
     createdAt?: DateTimeFilter | Date | string;
     label?: StringFilter | string;
+    mainPhotoId?: StringNullableFilter | string | null;
+    main?: XOR<PhotoRelationFilter, PhotoWhereInput> | null;
     photos?: PhotoListRelationFilter;
-    mainPhotoId?: StringFilter | string;
-    main?: XOR<PhotoRelationFilter, PhotoWhereInput>;
   };
 
   export type AlbumOrderByWithRelationInput = {
     id?: SortOrder;
     createdAt?: SortOrder;
     label?: SortOrder;
-    photos?: PhotoOrderByRelationAggregateInput;
     mainPhotoId?: SortOrder;
     main?: PhotoOrderByWithRelationInput;
+    photos?: PhotoOrderByRelationAggregateInput;
   };
 
   export type AlbumWhereUniqueInput = {
@@ -5795,7 +5928,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter | string;
     createdAt?: DateTimeWithAggregatesFilter | Date | string;
     label?: StringWithAggregatesFilter | string;
-    mainPhotoId?: StringWithAggregatesFilter | string;
+    mainPhotoId?: StringNullableWithAggregatesFilter | string | null;
   };
 
   export type ImageFileWhereInput = {
@@ -5807,8 +5940,8 @@ export namespace Prisma {
     original?: StringFilter | string;
     small?: StringFilter | string;
     large?: StringFilter | string;
-    originalFor?: XOR<PhotoRelationFilter, PhotoWhereInput> | null;
-    editedFor?: XOR<PhotoRelationFilter, PhotoWhereInput> | null;
+    editedFor?: PhotoListRelationFilter;
+    originalFor?: PhotoListRelationFilter;
   };
 
   export type ImageFileOrderByWithRelationInput = {
@@ -5817,8 +5950,8 @@ export namespace Prisma {
     original?: SortOrder;
     small?: SortOrder;
     large?: SortOrder;
-    originalFor?: PhotoOrderByWithRelationInput;
-    editedFor?: PhotoOrderByWithRelationInput;
+    editedFor?: PhotoOrderByRelationAggregateInput;
+    originalFor?: PhotoOrderByRelationAggregateInput;
   };
 
   export type ImageFileWhereUniqueInput = {
@@ -5854,32 +5987,30 @@ export namespace Prisma {
     id?: StringFilter | string;
     createdAt?: DateTimeFilter | Date | string;
     originalFileId?: StringFilter | string;
-    originalFile?: XOR<ImageFileRelationFilter, ImageFileWhereInput>;
-    editedFileId?: StringFilter | string;
-    editedFile?: XOR<ImageFileRelationFilter, ImageFileWhereInput>;
+    editedFileId?: StringNullableFilter | string | null;
     albumId?: StringFilter | string;
-    album?: XOR<AlbumRelationFilter, AlbumWhereInput>;
     label?: StringFilter | string;
-    Album?: AlbumListRelationFilter;
+    album?: XOR<AlbumRelationFilter, AlbumWhereInput>;
+    editedFile?: XOR<ImageFileRelationFilter, ImageFileWhereInput> | null;
+    originalFile?: XOR<ImageFileRelationFilter, ImageFileWhereInput>;
+    mainFor?: AlbumListRelationFilter;
   };
 
   export type PhotoOrderByWithRelationInput = {
     id?: SortOrder;
     createdAt?: SortOrder;
     originalFileId?: SortOrder;
-    originalFile?: ImageFileOrderByWithRelationInput;
     editedFileId?: SortOrder;
-    editedFile?: ImageFileOrderByWithRelationInput;
     albumId?: SortOrder;
-    album?: AlbumOrderByWithRelationInput;
     label?: SortOrder;
-    Album?: AlbumOrderByRelationAggregateInput;
+    album?: AlbumOrderByWithRelationInput;
+    editedFile?: ImageFileOrderByWithRelationInput;
+    originalFile?: ImageFileOrderByWithRelationInput;
+    mainFor?: AlbumOrderByRelationAggregateInput;
   };
 
   export type PhotoWhereUniqueInput = {
     id?: string;
-    originalFileId?: string;
-    editedFileId?: string;
   };
 
   export type PhotoOrderByWithAggregationInput = {
@@ -5901,7 +6032,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter | string;
     createdAt?: DateTimeWithAggregatesFilter | Date | string;
     originalFileId?: StringWithAggregatesFilter | string;
-    editedFileId?: StringWithAggregatesFilter | string;
+    editedFileId?: StringNullableWithAggregatesFilter | string | null;
     albumId?: StringWithAggregatesFilter | string;
     label?: StringWithAggregatesFilter | string;
   };
@@ -6000,15 +6131,15 @@ export namespace Prisma {
     id?: string;
     createdAt?: Date | string;
     label: string;
+    main?: PhotoCreateNestedOneWithoutMainForInput;
     photos?: PhotoCreateNestedManyWithoutAlbumInput;
-    main: PhotoCreateNestedOneWithoutAlbumInput;
   };
 
   export type AlbumUncheckedCreateInput = {
     id?: string;
     createdAt?: Date | string;
     label: string;
-    mainPhotoId: string;
+    mainPhotoId?: string | null;
     photos?: PhotoUncheckedCreateNestedManyWithoutAlbumInput;
   };
 
@@ -6016,15 +6147,15 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     label?: StringFieldUpdateOperationsInput | string;
+    main?: PhotoUpdateOneWithoutMainForInput;
     photos?: PhotoUpdateManyWithoutAlbumInput;
-    main?: PhotoUpdateOneRequiredWithoutAlbumInput;
   };
 
   export type AlbumUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     label?: StringFieldUpdateOperationsInput | string;
-    mainPhotoId?: StringFieldUpdateOperationsInput | string;
+    mainPhotoId?: NullableStringFieldUpdateOperationsInput | string | null;
     photos?: PhotoUncheckedUpdateManyWithoutAlbumInput;
   };
 
@@ -6032,7 +6163,7 @@ export namespace Prisma {
     id?: string;
     createdAt?: Date | string;
     label: string;
-    mainPhotoId: string;
+    mainPhotoId?: string | null;
   };
 
   export type AlbumUpdateManyMutationInput = {
@@ -6045,7 +6176,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     label?: StringFieldUpdateOperationsInput | string;
-    mainPhotoId?: StringFieldUpdateOperationsInput | string;
+    mainPhotoId?: NullableStringFieldUpdateOperationsInput | string | null;
   };
 
   export type ImageFileCreateInput = {
@@ -6054,8 +6185,8 @@ export namespace Prisma {
     original: string;
     small: string;
     large: string;
-    originalFor?: PhotoCreateNestedOneWithoutOriginalFileInput;
-    editedFor?: PhotoCreateNestedOneWithoutEditedFileInput;
+    editedFor?: PhotoCreateNestedManyWithoutEditedFileInput;
+    originalFor?: PhotoCreateNestedManyWithoutOriginalFileInput;
   };
 
   export type ImageFileUncheckedCreateInput = {
@@ -6064,8 +6195,8 @@ export namespace Prisma {
     original: string;
     small: string;
     large: string;
-    originalFor?: PhotoUncheckedCreateNestedOneWithoutOriginalFileInput;
-    editedFor?: PhotoUncheckedCreateNestedOneWithoutEditedFileInput;
+    editedFor?: PhotoUncheckedCreateNestedManyWithoutEditedFileInput;
+    originalFor?: PhotoUncheckedCreateNestedManyWithoutOriginalFileInput;
   };
 
   export type ImageFileUpdateInput = {
@@ -6074,8 +6205,8 @@ export namespace Prisma {
     original?: StringFieldUpdateOperationsInput | string;
     small?: StringFieldUpdateOperationsInput | string;
     large?: StringFieldUpdateOperationsInput | string;
-    originalFor?: PhotoUpdateOneWithoutOriginalFileInput;
-    editedFor?: PhotoUpdateOneWithoutEditedFileInput;
+    editedFor?: PhotoUpdateManyWithoutEditedFileInput;
+    originalFor?: PhotoUpdateManyWithoutOriginalFileInput;
   };
 
   export type ImageFileUncheckedUpdateInput = {
@@ -6084,8 +6215,8 @@ export namespace Prisma {
     original?: StringFieldUpdateOperationsInput | string;
     small?: StringFieldUpdateOperationsInput | string;
     large?: StringFieldUpdateOperationsInput | string;
-    originalFor?: PhotoUncheckedUpdateOneWithoutOriginalFileInput;
-    editedFor?: PhotoUncheckedUpdateOneWithoutEditedFileInput;
+    editedFor?: PhotoUncheckedUpdateManyWithoutEditedFileInput;
+    originalFor?: PhotoUncheckedUpdateManyWithoutOriginalFileInput;
   };
 
   export type ImageFileCreateManyInput = {
@@ -6116,47 +6247,47 @@ export namespace Prisma {
     id?: string;
     createdAt?: Date | string;
     label: string;
-    originalFile: ImageFileCreateNestedOneWithoutOriginalForInput;
-    editedFile: ImageFileCreateNestedOneWithoutEditedForInput;
     album: AlbumCreateNestedOneWithoutPhotosInput;
-    Album?: AlbumCreateNestedManyWithoutMainInput;
+    editedFile?: ImageFileCreateNestedOneWithoutEditedForInput;
+    originalFile: ImageFileCreateNestedOneWithoutOriginalForInput;
+    mainFor?: AlbumCreateNestedManyWithoutMainInput;
   };
 
   export type PhotoUncheckedCreateInput = {
     id?: string;
     createdAt?: Date | string;
     originalFileId: string;
-    editedFileId: string;
+    editedFileId?: string | null;
     albumId: string;
     label: string;
-    Album?: AlbumUncheckedCreateNestedManyWithoutMainInput;
+    mainFor?: AlbumUncheckedCreateNestedManyWithoutMainInput;
   };
 
   export type PhotoUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     label?: StringFieldUpdateOperationsInput | string;
-    originalFile?: ImageFileUpdateOneRequiredWithoutOriginalForInput;
-    editedFile?: ImageFileUpdateOneRequiredWithoutEditedForInput;
     album?: AlbumUpdateOneRequiredWithoutPhotosInput;
-    Album?: AlbumUpdateManyWithoutMainInput;
+    editedFile?: ImageFileUpdateOneWithoutEditedForInput;
+    originalFile?: ImageFileUpdateOneRequiredWithoutOriginalForInput;
+    mainFor?: AlbumUpdateManyWithoutMainInput;
   };
 
   export type PhotoUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     originalFileId?: StringFieldUpdateOperationsInput | string;
-    editedFileId?: StringFieldUpdateOperationsInput | string;
+    editedFileId?: NullableStringFieldUpdateOperationsInput | string | null;
     albumId?: StringFieldUpdateOperationsInput | string;
     label?: StringFieldUpdateOperationsInput | string;
-    Album?: AlbumUncheckedUpdateManyWithoutMainInput;
+    mainFor?: AlbumUncheckedUpdateManyWithoutMainInput;
   };
 
   export type PhotoCreateManyInput = {
     id?: string;
     createdAt?: Date | string;
     originalFileId: string;
-    editedFileId: string;
+    editedFileId?: string | null;
     albumId: string;
     label: string;
   };
@@ -6171,7 +6302,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     originalFileId?: StringFieldUpdateOperationsInput | string;
-    editedFileId?: StringFieldUpdateOperationsInput | string;
+    editedFileId?: NullableStringFieldUpdateOperationsInput | string | null;
     albumId?: StringFieldUpdateOperationsInput | string;
     label?: StringFieldUpdateOperationsInput | string;
   };
@@ -6323,15 +6454,15 @@ export namespace Prisma {
     not?: NestedDateTimeFilter | Date | string;
   };
 
+  export type PhotoRelationFilter = {
+    is?: PhotoWhereInput | null;
+    isNot?: PhotoWhereInput | null;
+  };
+
   export type PhotoListRelationFilter = {
     every?: PhotoWhereInput;
     some?: PhotoWhereInput;
     none?: PhotoWhereInput;
-  };
-
-  export type PhotoRelationFilter = {
-    is?: PhotoWhereInput | null;
-    isNot?: PhotoWhereInput | null;
   };
 
   export type PhotoOrderByRelationAggregateInput = {
@@ -6397,14 +6528,14 @@ export namespace Prisma {
     large?: SortOrder;
   };
 
-  export type ImageFileRelationFilter = {
-    is?: ImageFileWhereInput;
-    isNot?: ImageFileWhereInput;
-  };
-
   export type AlbumRelationFilter = {
     is?: AlbumWhereInput;
     isNot?: AlbumWhereInput;
+  };
+
+  export type ImageFileRelationFilter = {
+    is?: ImageFileWhereInput | null;
+    isNot?: ImageFileWhereInput | null;
   };
 
   export type AlbumListRelationFilter = {
@@ -6490,6 +6621,15 @@ export namespace Prisma {
     set?: string | null;
   };
 
+  export type PhotoCreateNestedOneWithoutMainForInput = {
+    create?: XOR<
+      PhotoCreateWithoutMainForInput,
+      PhotoUncheckedCreateWithoutMainForInput
+    >;
+    connectOrCreate?: PhotoCreateOrConnectWithoutMainForInput;
+    connect?: PhotoWhereUniqueInput;
+  };
+
   export type PhotoCreateNestedManyWithoutAlbumInput = {
     create?: XOR<
       Enumerable<PhotoCreateWithoutAlbumInput>,
@@ -6498,15 +6638,6 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutAlbumInput>;
     createMany?: PhotoCreateManyAlbumInputEnvelope;
     connect?: Enumerable<PhotoWhereUniqueInput>;
-  };
-
-  export type PhotoCreateNestedOneWithoutAlbumInput = {
-    create?: XOR<
-      PhotoCreateWithoutAlbumInput,
-      PhotoUncheckedCreateWithoutAlbumInput
-    >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutAlbumInput;
-    connect?: PhotoWhereUniqueInput;
   };
 
   export type PhotoUncheckedCreateNestedManyWithoutAlbumInput = {
@@ -6521,6 +6652,22 @@ export namespace Prisma {
 
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string;
+  };
+
+  export type PhotoUpdateOneWithoutMainForInput = {
+    create?: XOR<
+      PhotoCreateWithoutMainForInput,
+      PhotoUncheckedCreateWithoutMainForInput
+    >;
+    connectOrCreate?: PhotoCreateOrConnectWithoutMainForInput;
+    upsert?: PhotoUpsertWithoutMainForInput;
+    disconnect?: boolean;
+    delete?: boolean;
+    connect?: PhotoWhereUniqueInput;
+    update?: XOR<
+      PhotoUpdateWithoutMainForInput,
+      PhotoUncheckedUpdateWithoutMainForInput
+    >;
   };
 
   export type PhotoUpdateManyWithoutAlbumInput = {
@@ -6540,20 +6687,6 @@ export namespace Prisma {
     deleteMany?: Enumerable<PhotoScalarWhereInput>;
   };
 
-  export type PhotoUpdateOneRequiredWithoutAlbumInput = {
-    create?: XOR<
-      PhotoCreateWithoutAlbumInput,
-      PhotoUncheckedCreateWithoutAlbumInput
-    >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutAlbumInput;
-    upsert?: PhotoUpsertWithoutAlbumInput;
-    connect?: PhotoWhereUniqueInput;
-    update?: XOR<
-      PhotoUpdateWithoutAlbumInput,
-      PhotoUncheckedUpdateWithoutAlbumInput
-    >;
-  };
-
   export type PhotoUncheckedUpdateManyWithoutAlbumInput = {
     create?: XOR<
       Enumerable<PhotoCreateWithoutAlbumInput>,
@@ -6571,113 +6704,121 @@ export namespace Prisma {
     deleteMany?: Enumerable<PhotoScalarWhereInput>;
   };
 
-  export type PhotoCreateNestedOneWithoutOriginalFileInput = {
+  export type PhotoCreateNestedManyWithoutEditedFileInput = {
     create?: XOR<
-      PhotoCreateWithoutOriginalFileInput,
-      PhotoUncheckedCreateWithoutOriginalFileInput
+      Enumerable<PhotoCreateWithoutEditedFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutEditedFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutOriginalFileInput;
-    connect?: PhotoWhereUniqueInput;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutEditedFileInput>;
+    createMany?: PhotoCreateManyEditedFileInputEnvelope;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
   };
 
-  export type PhotoCreateNestedOneWithoutEditedFileInput = {
+  export type PhotoCreateNestedManyWithoutOriginalFileInput = {
     create?: XOR<
-      PhotoCreateWithoutEditedFileInput,
-      PhotoUncheckedCreateWithoutEditedFileInput
+      Enumerable<PhotoCreateWithoutOriginalFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutOriginalFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutEditedFileInput;
-    connect?: PhotoWhereUniqueInput;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutOriginalFileInput>;
+    createMany?: PhotoCreateManyOriginalFileInputEnvelope;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
   };
 
-  export type PhotoUncheckedCreateNestedOneWithoutOriginalFileInput = {
+  export type PhotoUncheckedCreateNestedManyWithoutEditedFileInput = {
     create?: XOR<
-      PhotoCreateWithoutOriginalFileInput,
-      PhotoUncheckedCreateWithoutOriginalFileInput
+      Enumerable<PhotoCreateWithoutEditedFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutEditedFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutOriginalFileInput;
-    connect?: PhotoWhereUniqueInput;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutEditedFileInput>;
+    createMany?: PhotoCreateManyEditedFileInputEnvelope;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
   };
 
-  export type PhotoUncheckedCreateNestedOneWithoutEditedFileInput = {
+  export type PhotoUncheckedCreateNestedManyWithoutOriginalFileInput = {
     create?: XOR<
-      PhotoCreateWithoutEditedFileInput,
-      PhotoUncheckedCreateWithoutEditedFileInput
+      Enumerable<PhotoCreateWithoutOriginalFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutOriginalFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutEditedFileInput;
-    connect?: PhotoWhereUniqueInput;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutOriginalFileInput>;
+    createMany?: PhotoCreateManyOriginalFileInputEnvelope;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
   };
 
-  export type PhotoUpdateOneWithoutOriginalFileInput = {
+  export type PhotoUpdateManyWithoutEditedFileInput = {
     create?: XOR<
-      PhotoCreateWithoutOriginalFileInput,
-      PhotoUncheckedCreateWithoutOriginalFileInput
+      Enumerable<PhotoCreateWithoutEditedFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutEditedFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutOriginalFileInput;
-    upsert?: PhotoUpsertWithoutOriginalFileInput;
-    disconnect?: boolean;
-    delete?: boolean;
-    connect?: PhotoWhereUniqueInput;
-    update?: XOR<
-      PhotoUpdateWithoutOriginalFileInput,
-      PhotoUncheckedUpdateWithoutOriginalFileInput
-    >;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutEditedFileInput>;
+    upsert?: Enumerable<PhotoUpsertWithWhereUniqueWithoutEditedFileInput>;
+    createMany?: PhotoCreateManyEditedFileInputEnvelope;
+    set?: Enumerable<PhotoWhereUniqueInput>;
+    disconnect?: Enumerable<PhotoWhereUniqueInput>;
+    delete?: Enumerable<PhotoWhereUniqueInput>;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
+    update?: Enumerable<PhotoUpdateWithWhereUniqueWithoutEditedFileInput>;
+    updateMany?: Enumerable<PhotoUpdateManyWithWhereWithoutEditedFileInput>;
+    deleteMany?: Enumerable<PhotoScalarWhereInput>;
   };
 
-  export type PhotoUpdateOneWithoutEditedFileInput = {
+  export type PhotoUpdateManyWithoutOriginalFileInput = {
     create?: XOR<
-      PhotoCreateWithoutEditedFileInput,
-      PhotoUncheckedCreateWithoutEditedFileInput
+      Enumerable<PhotoCreateWithoutOriginalFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutOriginalFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutEditedFileInput;
-    upsert?: PhotoUpsertWithoutEditedFileInput;
-    disconnect?: boolean;
-    delete?: boolean;
-    connect?: PhotoWhereUniqueInput;
-    update?: XOR<
-      PhotoUpdateWithoutEditedFileInput,
-      PhotoUncheckedUpdateWithoutEditedFileInput
-    >;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutOriginalFileInput>;
+    upsert?: Enumerable<PhotoUpsertWithWhereUniqueWithoutOriginalFileInput>;
+    createMany?: PhotoCreateManyOriginalFileInputEnvelope;
+    set?: Enumerable<PhotoWhereUniqueInput>;
+    disconnect?: Enumerable<PhotoWhereUniqueInput>;
+    delete?: Enumerable<PhotoWhereUniqueInput>;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
+    update?: Enumerable<PhotoUpdateWithWhereUniqueWithoutOriginalFileInput>;
+    updateMany?: Enumerable<PhotoUpdateManyWithWhereWithoutOriginalFileInput>;
+    deleteMany?: Enumerable<PhotoScalarWhereInput>;
   };
 
-  export type PhotoUncheckedUpdateOneWithoutOriginalFileInput = {
+  export type PhotoUncheckedUpdateManyWithoutEditedFileInput = {
     create?: XOR<
-      PhotoCreateWithoutOriginalFileInput,
-      PhotoUncheckedCreateWithoutOriginalFileInput
+      Enumerable<PhotoCreateWithoutEditedFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutEditedFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutOriginalFileInput;
-    upsert?: PhotoUpsertWithoutOriginalFileInput;
-    disconnect?: boolean;
-    delete?: boolean;
-    connect?: PhotoWhereUniqueInput;
-    update?: XOR<
-      PhotoUpdateWithoutOriginalFileInput,
-      PhotoUncheckedUpdateWithoutOriginalFileInput
-    >;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutEditedFileInput>;
+    upsert?: Enumerable<PhotoUpsertWithWhereUniqueWithoutEditedFileInput>;
+    createMany?: PhotoCreateManyEditedFileInputEnvelope;
+    set?: Enumerable<PhotoWhereUniqueInput>;
+    disconnect?: Enumerable<PhotoWhereUniqueInput>;
+    delete?: Enumerable<PhotoWhereUniqueInput>;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
+    update?: Enumerable<PhotoUpdateWithWhereUniqueWithoutEditedFileInput>;
+    updateMany?: Enumerable<PhotoUpdateManyWithWhereWithoutEditedFileInput>;
+    deleteMany?: Enumerable<PhotoScalarWhereInput>;
   };
 
-  export type PhotoUncheckedUpdateOneWithoutEditedFileInput = {
+  export type PhotoUncheckedUpdateManyWithoutOriginalFileInput = {
     create?: XOR<
-      PhotoCreateWithoutEditedFileInput,
-      PhotoUncheckedCreateWithoutEditedFileInput
+      Enumerable<PhotoCreateWithoutOriginalFileInput>,
+      Enumerable<PhotoUncheckedCreateWithoutOriginalFileInput>
     >;
-    connectOrCreate?: PhotoCreateOrConnectWithoutEditedFileInput;
-    upsert?: PhotoUpsertWithoutEditedFileInput;
-    disconnect?: boolean;
-    delete?: boolean;
-    connect?: PhotoWhereUniqueInput;
-    update?: XOR<
-      PhotoUpdateWithoutEditedFileInput,
-      PhotoUncheckedUpdateWithoutEditedFileInput
-    >;
+    connectOrCreate?: Enumerable<PhotoCreateOrConnectWithoutOriginalFileInput>;
+    upsert?: Enumerable<PhotoUpsertWithWhereUniqueWithoutOriginalFileInput>;
+    createMany?: PhotoCreateManyOriginalFileInputEnvelope;
+    set?: Enumerable<PhotoWhereUniqueInput>;
+    disconnect?: Enumerable<PhotoWhereUniqueInput>;
+    delete?: Enumerable<PhotoWhereUniqueInput>;
+    connect?: Enumerable<PhotoWhereUniqueInput>;
+    update?: Enumerable<PhotoUpdateWithWhereUniqueWithoutOriginalFileInput>;
+    updateMany?: Enumerable<PhotoUpdateManyWithWhereWithoutOriginalFileInput>;
+    deleteMany?: Enumerable<PhotoScalarWhereInput>;
   };
 
-  export type ImageFileCreateNestedOneWithoutOriginalForInput = {
+  export type AlbumCreateNestedOneWithoutPhotosInput = {
     create?: XOR<
-      ImageFileCreateWithoutOriginalForInput,
-      ImageFileUncheckedCreateWithoutOriginalForInput
+      AlbumCreateWithoutPhotosInput,
+      AlbumUncheckedCreateWithoutPhotosInput
     >;
-    connectOrCreate?: ImageFileCreateOrConnectWithoutOriginalForInput;
-    connect?: ImageFileWhereUniqueInput;
+    connectOrCreate?: AlbumCreateOrConnectWithoutPhotosInput;
+    connect?: AlbumWhereUniqueInput;
   };
 
   export type ImageFileCreateNestedOneWithoutEditedForInput = {
@@ -6689,13 +6830,13 @@ export namespace Prisma {
     connect?: ImageFileWhereUniqueInput;
   };
 
-  export type AlbumCreateNestedOneWithoutPhotosInput = {
+  export type ImageFileCreateNestedOneWithoutOriginalForInput = {
     create?: XOR<
-      AlbumCreateWithoutPhotosInput,
-      AlbumUncheckedCreateWithoutPhotosInput
+      ImageFileCreateWithoutOriginalForInput,
+      ImageFileUncheckedCreateWithoutOriginalForInput
     >;
-    connectOrCreate?: AlbumCreateOrConnectWithoutPhotosInput;
-    connect?: AlbumWhereUniqueInput;
+    connectOrCreate?: ImageFileCreateOrConnectWithoutOriginalForInput;
+    connect?: ImageFileWhereUniqueInput;
   };
 
   export type AlbumCreateNestedManyWithoutMainInput = {
@@ -6718,34 +6859,6 @@ export namespace Prisma {
     connect?: Enumerable<AlbumWhereUniqueInput>;
   };
 
-  export type ImageFileUpdateOneRequiredWithoutOriginalForInput = {
-    create?: XOR<
-      ImageFileCreateWithoutOriginalForInput,
-      ImageFileUncheckedCreateWithoutOriginalForInput
-    >;
-    connectOrCreate?: ImageFileCreateOrConnectWithoutOriginalForInput;
-    upsert?: ImageFileUpsertWithoutOriginalForInput;
-    connect?: ImageFileWhereUniqueInput;
-    update?: XOR<
-      ImageFileUpdateWithoutOriginalForInput,
-      ImageFileUncheckedUpdateWithoutOriginalForInput
-    >;
-  };
-
-  export type ImageFileUpdateOneRequiredWithoutEditedForInput = {
-    create?: XOR<
-      ImageFileCreateWithoutEditedForInput,
-      ImageFileUncheckedCreateWithoutEditedForInput
-    >;
-    connectOrCreate?: ImageFileCreateOrConnectWithoutEditedForInput;
-    upsert?: ImageFileUpsertWithoutEditedForInput;
-    connect?: ImageFileWhereUniqueInput;
-    update?: XOR<
-      ImageFileUpdateWithoutEditedForInput,
-      ImageFileUncheckedUpdateWithoutEditedForInput
-    >;
-  };
-
   export type AlbumUpdateOneRequiredWithoutPhotosInput = {
     create?: XOR<
       AlbumCreateWithoutPhotosInput,
@@ -6757,6 +6870,36 @@ export namespace Prisma {
     update?: XOR<
       AlbumUpdateWithoutPhotosInput,
       AlbumUncheckedUpdateWithoutPhotosInput
+    >;
+  };
+
+  export type ImageFileUpdateOneWithoutEditedForInput = {
+    create?: XOR<
+      ImageFileCreateWithoutEditedForInput,
+      ImageFileUncheckedCreateWithoutEditedForInput
+    >;
+    connectOrCreate?: ImageFileCreateOrConnectWithoutEditedForInput;
+    upsert?: ImageFileUpsertWithoutEditedForInput;
+    disconnect?: boolean;
+    delete?: boolean;
+    connect?: ImageFileWhereUniqueInput;
+    update?: XOR<
+      ImageFileUpdateWithoutEditedForInput,
+      ImageFileUncheckedUpdateWithoutEditedForInput
+    >;
+  };
+
+  export type ImageFileUpdateOneRequiredWithoutOriginalForInput = {
+    create?: XOR<
+      ImageFileCreateWithoutOriginalForInput,
+      ImageFileUncheckedCreateWithoutOriginalForInput
+    >;
+    connectOrCreate?: ImageFileCreateOrConnectWithoutOriginalForInput;
+    upsert?: ImageFileUpsertWithoutOriginalForInput;
+    connect?: ImageFileWhereUniqueInput;
+    update?: XOR<
+      ImageFileUpdateWithoutOriginalForInput,
+      ImageFileUncheckedUpdateWithoutOriginalForInput
     >;
   };
 
@@ -6924,22 +7067,48 @@ export namespace Prisma {
     _max?: NestedEnumUrlTypeFilter;
   };
 
+  export type PhotoCreateWithoutMainForInput = {
+    id?: string;
+    createdAt?: Date | string;
+    label: string;
+    album: AlbumCreateNestedOneWithoutPhotosInput;
+    editedFile?: ImageFileCreateNestedOneWithoutEditedForInput;
+    originalFile: ImageFileCreateNestedOneWithoutOriginalForInput;
+  };
+
+  export type PhotoUncheckedCreateWithoutMainForInput = {
+    id?: string;
+    createdAt?: Date | string;
+    originalFileId: string;
+    editedFileId?: string | null;
+    albumId: string;
+    label: string;
+  };
+
+  export type PhotoCreateOrConnectWithoutMainForInput = {
+    where: PhotoWhereUniqueInput;
+    create: XOR<
+      PhotoCreateWithoutMainForInput,
+      PhotoUncheckedCreateWithoutMainForInput
+    >;
+  };
+
   export type PhotoCreateWithoutAlbumInput = {
     id?: string;
     createdAt?: Date | string;
     label: string;
+    editedFile?: ImageFileCreateNestedOneWithoutEditedForInput;
     originalFile: ImageFileCreateNestedOneWithoutOriginalForInput;
-    editedFile: ImageFileCreateNestedOneWithoutEditedForInput;
-    Album?: AlbumCreateNestedManyWithoutMainInput;
+    mainFor?: AlbumCreateNestedManyWithoutMainInput;
   };
 
   export type PhotoUncheckedCreateWithoutAlbumInput = {
     id?: string;
     createdAt?: Date | string;
     originalFileId: string;
-    editedFileId: string;
+    editedFileId?: string | null;
     label: string;
-    Album?: AlbumUncheckedCreateNestedManyWithoutMainInput;
+    mainFor?: AlbumUncheckedCreateNestedManyWithoutMainInput;
   };
 
   export type PhotoCreateOrConnectWithoutAlbumInput = {
@@ -6953,6 +7122,35 @@ export namespace Prisma {
   export type PhotoCreateManyAlbumInputEnvelope = {
     data: Enumerable<PhotoCreateManyAlbumInput>;
     skipDuplicates?: boolean;
+  };
+
+  export type PhotoUpsertWithoutMainForInput = {
+    update: XOR<
+      PhotoUpdateWithoutMainForInput,
+      PhotoUncheckedUpdateWithoutMainForInput
+    >;
+    create: XOR<
+      PhotoCreateWithoutMainForInput,
+      PhotoUncheckedCreateWithoutMainForInput
+    >;
+  };
+
+  export type PhotoUpdateWithoutMainForInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    label?: StringFieldUpdateOperationsInput | string;
+    album?: AlbumUpdateOneRequiredWithoutPhotosInput;
+    editedFile?: ImageFileUpdateOneWithoutEditedForInput;
+    originalFile?: ImageFileUpdateOneRequiredWithoutOriginalForInput;
+  };
+
+  export type PhotoUncheckedUpdateWithoutMainForInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    originalFileId?: StringFieldUpdateOperationsInput | string;
+    editedFileId?: NullableStringFieldUpdateOperationsInput | string | null;
+    albumId?: StringFieldUpdateOperationsInput | string;
+    label?: StringFieldUpdateOperationsInput | string;
   };
 
   export type PhotoUpsertWithWhereUniqueWithoutAlbumInput = {
@@ -6990,73 +7188,18 @@ export namespace Prisma {
     id?: StringFilter | string;
     createdAt?: DateTimeFilter | Date | string;
     originalFileId?: StringFilter | string;
-    editedFileId?: StringFilter | string;
+    editedFileId?: StringNullableFilter | string | null;
     albumId?: StringFilter | string;
     label?: StringFilter | string;
-  };
-
-  export type PhotoUpsertWithoutAlbumInput = {
-    update: XOR<
-      PhotoUpdateWithoutAlbumInput,
-      PhotoUncheckedUpdateWithoutAlbumInput
-    >;
-    create: XOR<
-      PhotoCreateWithoutAlbumInput,
-      PhotoUncheckedCreateWithoutAlbumInput
-    >;
-  };
-
-  export type PhotoUpdateWithoutAlbumInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    originalFile?: ImageFileUpdateOneRequiredWithoutOriginalForInput;
-    editedFile?: ImageFileUpdateOneRequiredWithoutEditedForInput;
-    Album?: AlbumUpdateManyWithoutMainInput;
-  };
-
-  export type PhotoUncheckedUpdateWithoutAlbumInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    originalFileId?: StringFieldUpdateOperationsInput | string;
-    editedFileId?: StringFieldUpdateOperationsInput | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    Album?: AlbumUncheckedUpdateManyWithoutMainInput;
-  };
-
-  export type PhotoCreateWithoutOriginalFileInput = {
-    id?: string;
-    createdAt?: Date | string;
-    label: string;
-    editedFile: ImageFileCreateNestedOneWithoutEditedForInput;
-    album: AlbumCreateNestedOneWithoutPhotosInput;
-    Album?: AlbumCreateNestedManyWithoutMainInput;
-  };
-
-  export type PhotoUncheckedCreateWithoutOriginalFileInput = {
-    id?: string;
-    createdAt?: Date | string;
-    editedFileId: string;
-    albumId: string;
-    label: string;
-    Album?: AlbumUncheckedCreateNestedManyWithoutMainInput;
-  };
-
-  export type PhotoCreateOrConnectWithoutOriginalFileInput = {
-    where: PhotoWhereUniqueInput;
-    create: XOR<
-      PhotoCreateWithoutOriginalFileInput,
-      PhotoUncheckedCreateWithoutOriginalFileInput
-    >;
   };
 
   export type PhotoCreateWithoutEditedFileInput = {
     id?: string;
     createdAt?: Date | string;
     label: string;
-    originalFile: ImageFileCreateNestedOneWithoutOriginalForInput;
     album: AlbumCreateNestedOneWithoutPhotosInput;
-    Album?: AlbumCreateNestedManyWithoutMainInput;
+    originalFile: ImageFileCreateNestedOneWithoutOriginalForInput;
+    mainFor?: AlbumCreateNestedManyWithoutMainInput;
   };
 
   export type PhotoUncheckedCreateWithoutEditedFileInput = {
@@ -7065,7 +7208,7 @@ export namespace Prisma {
     originalFileId: string;
     albumId: string;
     label: string;
-    Album?: AlbumUncheckedCreateNestedManyWithoutMainInput;
+    mainFor?: AlbumUncheckedCreateNestedManyWithoutMainInput;
   };
 
   export type PhotoCreateOrConnectWithoutEditedFileInput = {
@@ -7076,36 +7219,44 @@ export namespace Prisma {
     >;
   };
 
-  export type PhotoUpsertWithoutOriginalFileInput = {
-    update: XOR<
-      PhotoUpdateWithoutOriginalFileInput,
-      PhotoUncheckedUpdateWithoutOriginalFileInput
-    >;
+  export type PhotoCreateManyEditedFileInputEnvelope = {
+    data: Enumerable<PhotoCreateManyEditedFileInput>;
+    skipDuplicates?: boolean;
+  };
+
+  export type PhotoCreateWithoutOriginalFileInput = {
+    id?: string;
+    createdAt?: Date | string;
+    label: string;
+    album: AlbumCreateNestedOneWithoutPhotosInput;
+    editedFile?: ImageFileCreateNestedOneWithoutEditedForInput;
+    mainFor?: AlbumCreateNestedManyWithoutMainInput;
+  };
+
+  export type PhotoUncheckedCreateWithoutOriginalFileInput = {
+    id?: string;
+    createdAt?: Date | string;
+    editedFileId?: string | null;
+    albumId: string;
+    label: string;
+    mainFor?: AlbumUncheckedCreateNestedManyWithoutMainInput;
+  };
+
+  export type PhotoCreateOrConnectWithoutOriginalFileInput = {
+    where: PhotoWhereUniqueInput;
     create: XOR<
       PhotoCreateWithoutOriginalFileInput,
       PhotoUncheckedCreateWithoutOriginalFileInput
     >;
   };
 
-  export type PhotoUpdateWithoutOriginalFileInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    editedFile?: ImageFileUpdateOneRequiredWithoutEditedForInput;
-    album?: AlbumUpdateOneRequiredWithoutPhotosInput;
-    Album?: AlbumUpdateManyWithoutMainInput;
+  export type PhotoCreateManyOriginalFileInputEnvelope = {
+    data: Enumerable<PhotoCreateManyOriginalFileInput>;
+    skipDuplicates?: boolean;
   };
 
-  export type PhotoUncheckedUpdateWithoutOriginalFileInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    editedFileId?: StringFieldUpdateOperationsInput | string;
-    albumId?: StringFieldUpdateOperationsInput | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    Album?: AlbumUncheckedUpdateManyWithoutMainInput;
-  };
-
-  export type PhotoUpsertWithoutEditedFileInput = {
+  export type PhotoUpsertWithWhereUniqueWithoutEditedFileInput = {
+    where: PhotoWhereUniqueInput;
     update: XOR<
       PhotoUpdateWithoutEditedFileInput,
       PhotoUncheckedUpdateWithoutEditedFileInput
@@ -7116,47 +7267,69 @@ export namespace Prisma {
     >;
   };
 
-  export type PhotoUpdateWithoutEditedFileInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    originalFile?: ImageFileUpdateOneRequiredWithoutOriginalForInput;
-    album?: AlbumUpdateOneRequiredWithoutPhotosInput;
-    Album?: AlbumUpdateManyWithoutMainInput;
+  export type PhotoUpdateWithWhereUniqueWithoutEditedFileInput = {
+    where: PhotoWhereUniqueInput;
+    data: XOR<
+      PhotoUpdateWithoutEditedFileInput,
+      PhotoUncheckedUpdateWithoutEditedFileInput
+    >;
   };
 
-  export type PhotoUncheckedUpdateWithoutEditedFileInput = {
-    id?: StringFieldUpdateOperationsInput | string;
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    originalFileId?: StringFieldUpdateOperationsInput | string;
-    albumId?: StringFieldUpdateOperationsInput | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    Album?: AlbumUncheckedUpdateManyWithoutMainInput;
+  export type PhotoUpdateManyWithWhereWithoutEditedFileInput = {
+    where: PhotoScalarWhereInput;
+    data: XOR<
+      PhotoUpdateManyMutationInput,
+      PhotoUncheckedUpdateManyWithoutEditedForInput
+    >;
   };
 
-  export type ImageFileCreateWithoutOriginalForInput = {
-    id?: string;
-    createdAt?: Date | string;
-    original: string;
-    small: string;
-    large: string;
-    editedFor?: PhotoCreateNestedOneWithoutEditedFileInput;
-  };
-
-  export type ImageFileUncheckedCreateWithoutOriginalForInput = {
-    id?: string;
-    createdAt?: Date | string;
-    original: string;
-    small: string;
-    large: string;
-    editedFor?: PhotoUncheckedCreateNestedOneWithoutEditedFileInput;
-  };
-
-  export type ImageFileCreateOrConnectWithoutOriginalForInput = {
-    where: ImageFileWhereUniqueInput;
+  export type PhotoUpsertWithWhereUniqueWithoutOriginalFileInput = {
+    where: PhotoWhereUniqueInput;
+    update: XOR<
+      PhotoUpdateWithoutOriginalFileInput,
+      PhotoUncheckedUpdateWithoutOriginalFileInput
+    >;
     create: XOR<
-      ImageFileCreateWithoutOriginalForInput,
-      ImageFileUncheckedCreateWithoutOriginalForInput
+      PhotoCreateWithoutOriginalFileInput,
+      PhotoUncheckedCreateWithoutOriginalFileInput
+    >;
+  };
+
+  export type PhotoUpdateWithWhereUniqueWithoutOriginalFileInput = {
+    where: PhotoWhereUniqueInput;
+    data: XOR<
+      PhotoUpdateWithoutOriginalFileInput,
+      PhotoUncheckedUpdateWithoutOriginalFileInput
+    >;
+  };
+
+  export type PhotoUpdateManyWithWhereWithoutOriginalFileInput = {
+    where: PhotoScalarWhereInput;
+    data: XOR<
+      PhotoUpdateManyMutationInput,
+      PhotoUncheckedUpdateManyWithoutOriginalForInput
+    >;
+  };
+
+  export type AlbumCreateWithoutPhotosInput = {
+    id?: string;
+    createdAt?: Date | string;
+    label: string;
+    main?: PhotoCreateNestedOneWithoutMainForInput;
+  };
+
+  export type AlbumUncheckedCreateWithoutPhotosInput = {
+    id?: string;
+    createdAt?: Date | string;
+    label: string;
+    mainPhotoId?: string | null;
+  };
+
+  export type AlbumCreateOrConnectWithoutPhotosInput = {
+    where: AlbumWhereUniqueInput;
+    create: XOR<
+      AlbumCreateWithoutPhotosInput,
+      AlbumUncheckedCreateWithoutPhotosInput
     >;
   };
 
@@ -7166,7 +7339,7 @@ export namespace Prisma {
     original: string;
     small: string;
     large: string;
-    originalFor?: PhotoCreateNestedOneWithoutOriginalFileInput;
+    originalFor?: PhotoCreateNestedManyWithoutOriginalFileInput;
   };
 
   export type ImageFileUncheckedCreateWithoutEditedForInput = {
@@ -7175,7 +7348,7 @@ export namespace Prisma {
     original: string;
     small: string;
     large: string;
-    originalFor?: PhotoUncheckedCreateNestedOneWithoutOriginalFileInput;
+    originalFor?: PhotoUncheckedCreateNestedManyWithoutOriginalFileInput;
   };
 
   export type ImageFileCreateOrConnectWithoutEditedForInput = {
@@ -7186,25 +7359,29 @@ export namespace Prisma {
     >;
   };
 
-  export type AlbumCreateWithoutPhotosInput = {
+  export type ImageFileCreateWithoutOriginalForInput = {
     id?: string;
     createdAt?: Date | string;
-    label: string;
-    main: PhotoCreateNestedOneWithoutAlbumInput;
+    original: string;
+    small: string;
+    large: string;
+    editedFor?: PhotoCreateNestedManyWithoutEditedFileInput;
   };
 
-  export type AlbumUncheckedCreateWithoutPhotosInput = {
+  export type ImageFileUncheckedCreateWithoutOriginalForInput = {
     id?: string;
     createdAt?: Date | string;
-    label: string;
-    mainPhotoId: string;
+    original: string;
+    small: string;
+    large: string;
+    editedFor?: PhotoUncheckedCreateNestedManyWithoutEditedFileInput;
   };
 
-  export type AlbumCreateOrConnectWithoutPhotosInput = {
-    where: AlbumWhereUniqueInput;
+  export type ImageFileCreateOrConnectWithoutOriginalForInput = {
+    where: ImageFileWhereUniqueInput;
     create: XOR<
-      AlbumCreateWithoutPhotosInput,
-      AlbumUncheckedCreateWithoutPhotosInput
+      ImageFileCreateWithoutOriginalForInput,
+      ImageFileUncheckedCreateWithoutOriginalForInput
     >;
   };
 
@@ -7235,33 +7412,29 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
-  export type ImageFileUpsertWithoutOriginalForInput = {
+  export type AlbumUpsertWithoutPhotosInput = {
     update: XOR<
-      ImageFileUpdateWithoutOriginalForInput,
-      ImageFileUncheckedUpdateWithoutOriginalForInput
+      AlbumUpdateWithoutPhotosInput,
+      AlbumUncheckedUpdateWithoutPhotosInput
     >;
     create: XOR<
-      ImageFileCreateWithoutOriginalForInput,
-      ImageFileUncheckedCreateWithoutOriginalForInput
+      AlbumCreateWithoutPhotosInput,
+      AlbumUncheckedCreateWithoutPhotosInput
     >;
   };
 
-  export type ImageFileUpdateWithoutOriginalForInput = {
+  export type AlbumUpdateWithoutPhotosInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    original?: StringFieldUpdateOperationsInput | string;
-    small?: StringFieldUpdateOperationsInput | string;
-    large?: StringFieldUpdateOperationsInput | string;
-    editedFor?: PhotoUpdateOneWithoutEditedFileInput;
+    label?: StringFieldUpdateOperationsInput | string;
+    main?: PhotoUpdateOneWithoutMainForInput;
   };
 
-  export type ImageFileUncheckedUpdateWithoutOriginalForInput = {
+  export type AlbumUncheckedUpdateWithoutPhotosInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    original?: StringFieldUpdateOperationsInput | string;
-    small?: StringFieldUpdateOperationsInput | string;
-    large?: StringFieldUpdateOperationsInput | string;
-    editedFor?: PhotoUncheckedUpdateOneWithoutEditedFileInput;
+    label?: StringFieldUpdateOperationsInput | string;
+    mainPhotoId?: NullableStringFieldUpdateOperationsInput | string | null;
   };
 
   export type ImageFileUpsertWithoutEditedForInput = {
@@ -7281,7 +7454,7 @@ export namespace Prisma {
     original?: StringFieldUpdateOperationsInput | string;
     small?: StringFieldUpdateOperationsInput | string;
     large?: StringFieldUpdateOperationsInput | string;
-    originalFor?: PhotoUpdateOneWithoutOriginalFileInput;
+    originalFor?: PhotoUpdateManyWithoutOriginalFileInput;
   };
 
   export type ImageFileUncheckedUpdateWithoutEditedForInput = {
@@ -7290,32 +7463,36 @@ export namespace Prisma {
     original?: StringFieldUpdateOperationsInput | string;
     small?: StringFieldUpdateOperationsInput | string;
     large?: StringFieldUpdateOperationsInput | string;
-    originalFor?: PhotoUncheckedUpdateOneWithoutOriginalFileInput;
+    originalFor?: PhotoUncheckedUpdateManyWithoutOriginalFileInput;
   };
 
-  export type AlbumUpsertWithoutPhotosInput = {
+  export type ImageFileUpsertWithoutOriginalForInput = {
     update: XOR<
-      AlbumUpdateWithoutPhotosInput,
-      AlbumUncheckedUpdateWithoutPhotosInput
+      ImageFileUpdateWithoutOriginalForInput,
+      ImageFileUncheckedUpdateWithoutOriginalForInput
     >;
     create: XOR<
-      AlbumCreateWithoutPhotosInput,
-      AlbumUncheckedCreateWithoutPhotosInput
+      ImageFileCreateWithoutOriginalForInput,
+      ImageFileUncheckedCreateWithoutOriginalForInput
     >;
   };
 
-  export type AlbumUpdateWithoutPhotosInput = {
+  export type ImageFileUpdateWithoutOriginalForInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    main?: PhotoUpdateOneRequiredWithoutAlbumInput;
+    original?: StringFieldUpdateOperationsInput | string;
+    small?: StringFieldUpdateOperationsInput | string;
+    large?: StringFieldUpdateOperationsInput | string;
+    editedFor?: PhotoUpdateManyWithoutEditedFileInput;
   };
 
-  export type AlbumUncheckedUpdateWithoutPhotosInput = {
+  export type ImageFileUncheckedUpdateWithoutOriginalForInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
-    label?: StringFieldUpdateOperationsInput | string;
-    mainPhotoId?: StringFieldUpdateOperationsInput | string;
+    original?: StringFieldUpdateOperationsInput | string;
+    small?: StringFieldUpdateOperationsInput | string;
+    large?: StringFieldUpdateOperationsInput | string;
+    editedFor?: PhotoUncheckedUpdateManyWithoutEditedFileInput;
   };
 
   export type AlbumUpsertWithWhereUniqueWithoutMainInput = {
@@ -7342,7 +7519,7 @@ export namespace Prisma {
     where: AlbumScalarWhereInput;
     data: XOR<
       AlbumUpdateManyMutationInput,
-      AlbumUncheckedUpdateManyWithoutAlbumInput
+      AlbumUncheckedUpdateManyWithoutMainForInput
     >;
   };
 
@@ -7353,22 +7530,108 @@ export namespace Prisma {
     id?: StringFilter | string;
     createdAt?: DateTimeFilter | Date | string;
     label?: StringFilter | string;
-    mainPhotoId?: StringFilter | string;
+    mainPhotoId?: StringNullableFilter | string | null;
   };
 
   export type PhotoCreateManyAlbumInput = {
     id?: string;
     createdAt?: Date | string;
     originalFileId: string;
-    editedFileId: string;
+    editedFileId?: string | null;
     label: string;
+  };
+
+  export type PhotoUpdateWithoutAlbumInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    label?: StringFieldUpdateOperationsInput | string;
+    editedFile?: ImageFileUpdateOneWithoutEditedForInput;
+    originalFile?: ImageFileUpdateOneRequiredWithoutOriginalForInput;
+    mainFor?: AlbumUpdateManyWithoutMainInput;
+  };
+
+  export type PhotoUncheckedUpdateWithoutAlbumInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    originalFileId?: StringFieldUpdateOperationsInput | string;
+    editedFileId?: NullableStringFieldUpdateOperationsInput | string | null;
+    label?: StringFieldUpdateOperationsInput | string;
+    mainFor?: AlbumUncheckedUpdateManyWithoutMainInput;
   };
 
   export type PhotoUncheckedUpdateManyWithoutPhotosInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     originalFileId?: StringFieldUpdateOperationsInput | string;
-    editedFileId?: StringFieldUpdateOperationsInput | string;
+    editedFileId?: NullableStringFieldUpdateOperationsInput | string | null;
+    label?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type PhotoCreateManyEditedFileInput = {
+    id?: string;
+    createdAt?: Date | string;
+    originalFileId: string;
+    albumId: string;
+    label: string;
+  };
+
+  export type PhotoCreateManyOriginalFileInput = {
+    id?: string;
+    createdAt?: Date | string;
+    editedFileId?: string | null;
+    albumId: string;
+    label: string;
+  };
+
+  export type PhotoUpdateWithoutEditedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    label?: StringFieldUpdateOperationsInput | string;
+    album?: AlbumUpdateOneRequiredWithoutPhotosInput;
+    originalFile?: ImageFileUpdateOneRequiredWithoutOriginalForInput;
+    mainFor?: AlbumUpdateManyWithoutMainInput;
+  };
+
+  export type PhotoUncheckedUpdateWithoutEditedFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    originalFileId?: StringFieldUpdateOperationsInput | string;
+    albumId?: StringFieldUpdateOperationsInput | string;
+    label?: StringFieldUpdateOperationsInput | string;
+    mainFor?: AlbumUncheckedUpdateManyWithoutMainInput;
+  };
+
+  export type PhotoUncheckedUpdateManyWithoutEditedForInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    originalFileId?: StringFieldUpdateOperationsInput | string;
+    albumId?: StringFieldUpdateOperationsInput | string;
+    label?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type PhotoUpdateWithoutOriginalFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    label?: StringFieldUpdateOperationsInput | string;
+    album?: AlbumUpdateOneRequiredWithoutPhotosInput;
+    editedFile?: ImageFileUpdateOneWithoutEditedForInput;
+    mainFor?: AlbumUpdateManyWithoutMainInput;
+  };
+
+  export type PhotoUncheckedUpdateWithoutOriginalFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    editedFileId?: NullableStringFieldUpdateOperationsInput | string | null;
+    albumId?: StringFieldUpdateOperationsInput | string;
+    label?: StringFieldUpdateOperationsInput | string;
+    mainFor?: AlbumUncheckedUpdateManyWithoutMainInput;
+  };
+
+  export type PhotoUncheckedUpdateManyWithoutOriginalForInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    editedFileId?: NullableStringFieldUpdateOperationsInput | string | null;
+    albumId?: StringFieldUpdateOperationsInput | string;
     label?: StringFieldUpdateOperationsInput | string;
   };
 
@@ -7392,7 +7655,7 @@ export namespace Prisma {
     photos?: PhotoUncheckedUpdateManyWithoutAlbumInput;
   };
 
-  export type AlbumUncheckedUpdateManyWithoutAlbumInput = {
+  export type AlbumUncheckedUpdateManyWithoutMainForInput = {
     id?: StringFieldUpdateOperationsInput | string;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     label?: StringFieldUpdateOperationsInput | string;

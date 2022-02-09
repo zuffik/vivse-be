@@ -1,14 +1,37 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbService } from '../../db/db.service';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class PhotoService {
   constructor(
     @Inject(DbService)
     private readonly db: DbService,
+    @Inject(FileService)
+    private readonly files: FileService,
   ) {}
 
-  public async createPhoto(albumId: string, label: string) {
+  public async createPhotoWithOriginalFile(
+    albumId: string,
+    originalFilePath: string,
+    smallThumbFilePath: string,
+    largeThumbFilePath: string,
+    label = '',
+  ) {
+    const file = await this.files.createFile(
+      originalFilePath,
+      smallThumbFilePath,
+      largeThumbFilePath,
+    );
+    return await this.createPhoto(albumId, file.id, label);
+  }
+
+  public async createPhoto(
+    albumId: string,
+    originalFileId: string,
+    label = '',
+    editedFileId?: string,
+  ) {
     return this.db.photo.create({
       data: {
         album: {
@@ -16,8 +39,20 @@ export class PhotoService {
             id: albumId,
           },
         },
+        originalFile: {
+          connect: {
+            id: originalFileId,
+          },
+        },
         label,
-      } as any,
+        editedFile: editedFileId
+          ? {
+              connect: {
+                id: editedFileId,
+              },
+            }
+          : {},
+      },
     });
   }
 }

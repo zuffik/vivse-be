@@ -9,6 +9,6 @@ export class Album implements IAlbum {
   createdAt: Date;
   @Field(() => String)
   label: string;
-  @Field(() => String)
-  mainPhotoId: string;
+  @Field(() => String, { nullable: true })
+  mainPhotoId: string | null;
 }

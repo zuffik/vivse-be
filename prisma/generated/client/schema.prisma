@@ -4,13 +4,8 @@ generator client {
   binaryTargets = ["native", "darwin", "debian-openssl-1.1.x", "linux-musl"]
 }
 
-generator typegraphql {
-  provider = "typegraphql-prisma"
-  output   = "../prisma/generated/graphql"
-}
-
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -25,39 +20,32 @@ model Album {
   id          String   @id @default(uuid())
   createdAt   DateTime @default(now())
   label       String
-  photos      Photo[]  @relation(name: "Photos")
-  mainPhotoId String
-  main        Photo    @relation(fields: [mainPhotoId], references: [id], name: "MainPhoto")
+  mainPhotoId String?
+  main        Photo?   @relation("MainPhoto", fields: [mainPhotoId], references: [id])
+  photos      Photo[]  @relation("Photos")
 }
 
 model ImageFile {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  original  String
-  small     String
-  large     String
-
-  // todo resolve these relations
-  originalFor Photo? @relation(name: "OriginalFile")
-  editedFor   Photo? @relation(name: "EditedFile")
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  original    String
+  small       String
+  large       String
+  editedFor   Photo[]  @relation("EditedFile")
+  originalFor Photo[]  @relation("OriginalFile")
 }
 
 model Photo {
-  id             String    @id @default(uuid())
-  createdAt      DateTime  @default(now())
-  originalFileId String    @unique
-  originalFile   ImageFile @relation(fields: [originalFileId], references: [id], name: "OriginalFile")
-  editedFileId   String    @unique
-  editedFile     ImageFile @relation(fields: [editedFileId], references: [id], name: "EditedFile")
+  id             String     @id @default(uuid())
+  createdAt      DateTime   @default(now())
+  originalFileId String
+  editedFileId   String?
   albumId        String
-  album          Album     @relation(fields: [albumId], references: [id], name: "Photos")
   label          String
-  Album          Album[]   @relation("MainPhoto")
-}
-
-enum UrlType {
-  PICK
-  DOWNLOAD
+  album          Album      @relation("Photos", fields: [albumId], references: [id])
+  editedFile     ImageFile? @relation("EditedFile", fields: [editedFileId], references: [id])
+  originalFile   ImageFile  @relation("OriginalFile", fields: [originalFileId], references: [id])
+  mainFor        Album[]    @relation("MainPhoto")
 }
 
 model Url {
@@ -65,4 +53,9 @@ model Url {
   createdAt DateTime @default(now())
   expiresAt DateTime
   type      UrlType
+}
+
+enum UrlType {
+  PICK
+  DOWNLOAD
 }

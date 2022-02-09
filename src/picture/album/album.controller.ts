@@ -1,6 +1,7 @@
 import {
   Controller,
   Inject,
+  NotFoundException,
   Param,
   Post,
   UploadedFile,
@@ -8,13 +9,22 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Photo } from '../../../prisma/generated/client';
-import { FileService } from '../file/file.service';
+import { ImageService } from '../image/image.service';
+import { FileStorageService } from '../../file-storage/file-storage.service';
+import { PhotoService } from '../photo/photo.service';
+import { AlbumService } from './album.service';
 
 @Controller('album')
 export class AlbumController {
   constructor(
-    @Inject(FileService)
-    private readonly files: FileService,
+    @Inject(ImageService)
+    private readonly images: ImageService,
+    @Inject(FileStorageService)
+    private readonly fileStorage: FileStorageService,
+    @Inject(PhotoService)
+    private readonly photos: PhotoService,
+    @Inject(AlbumService)
+    private readonly albums: AlbumService,
   ) {}
 
   @Post('/:albumId/upload')
@@ -23,17 +33,21 @@ export class AlbumController {
     @UploadedFile() file: Express.Multer.File,
     @Param('albumId') albumId: string,
   ): Promise<Photo> {
-    // todo create thumb
-    console.log(file);
-    const url = await this.files.storeFile(file.path);
-    console.log(url);
-    return {
-      id: 'any',
+    const album = await this.albums.album(albumId);
+    if (!album) throw new NotFoundException();
+    const [smallThumb, largeThumb] = await this.images.createThumbnails(
+      file.path,
+    );
+    const [original, small, large] = await Promise.all([
+      this.fileStorage.storeFile(file.path),
+      this.fileStorage.storeFile(smallThumb),
+      this.fileStorage.storeFile(largeThumb),
+    ]);
+    return this.photos.createPhotoWithOriginalFile(
       albumId,
-      label: 'Label',
-      createdAt: new Date(),
-      editedFileId: 'any',
-      originalFileId: 'any',
-    };
+      original.href,
+      small.href,
+      large.href,
+    );
   }
 }
